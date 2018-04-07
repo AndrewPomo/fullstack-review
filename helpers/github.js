@@ -1,7 +1,9 @@
 const request = require('request');
 const config = require('../config.js');
+const Promise = require('bluebird');
 
-let getReposByUsername = (username, callback) => {
+
+let getReposByUsername = (username) => {
   let options = {
     url: `https://api.github.com/users/${username}/repos`,
     headers: {
@@ -9,18 +11,19 @@ let getReposByUsername = (username, callback) => {
       'Authorization': `token ${config.TOKEN}`
     }
   };
-  request.get(options, function(err, httpResponse, body) {
-    if (err) {
-      return console.error('upload failed:', err);
-    }
-
-    callback(body);
+  return new Promise((resolve, reject) => {
+    request.get(options, function(err, httpResponse, body) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(body)
+      }
+    })
   })
 }
 
 let getImportantData = (githubResponse, callback) => {
-
-  callback(JSON.parse(githubResponse).map( repo => {
+  return JSON.parse(githubResponse).map( repo => {
     return {
       '_id': repo.id,
       'name': repo.name,
@@ -33,7 +36,7 @@ let getImportantData = (githubResponse, callback) => {
       'owner': repo.owner.login,
       'owner_url': repo.owner.html_url
     }
-  }))
+  })
 }
 
 module.exports.getReposByUsername = getReposByUsername;

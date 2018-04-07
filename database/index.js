@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Promise = require('bluebird');
 mongoose.connect('mongodb://localhost/fetcher');
 
 let repoSchema = mongoose.Schema({
@@ -16,28 +17,30 @@ let repoSchema = mongoose.Schema({
 
 let Repo = mongoose.model('Repo', repoSchema);
 
-let save = (data) => {
-  data.forEach(function(repo) {
+let save = (repo) => {
+  return new Promise ((resolve, reject) => {
     Repo.create(repo, function (err) {
-      if (err) return console.error(err);
-      console.log("success!!!")
-    })
-  })
+      if (err) {
+        reject(err);
+      } else {
+        resolve(repo);
+      }
+    });
+  });
 }
 
 let getTopRepos = (callback) => {
-  // Repo.find({}, 'name description html_url owner', function(err, repos) {
-  //   if (err) console.log(err);
-  //   // console.log(repos)
-  //   callback(repos);
-  // })
-  console.log('hello')
-  Repo.find({})
-  .sort({'size': -1})
-  .limit(25)
-  .exec(function(err, repos) {
-    if (err) console.log(err);
-    callback(repos);
+  return new Promise((resolve, reject) => {
+    Repo.find({})
+    .sort({'size': 1})
+    .limit(25)
+    .exec(function(err, repos) {
+      if (err) { 
+        reject(err);
+      } else {
+        resolve(repos);
+      }
+    });
   });
 }
 
